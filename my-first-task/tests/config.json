@@ -1,0 +1,21 @@
+{
+  "repo": "pydantic-assessment",
+  "instance_id": "instance_fLLW6Em1FiNdHev5qme8lA6fOvv2__pydantic-assessment-9e9a111-my-first-task",
+  "base_commit": "9e9a11132c980c4ec84ff6d2df06d4c1a55ca8f3",
+  "test_patch": "diff --git a/tests/test_alias_path_bytes.py b/tests/test_alias_path_bytes.py\nnew file mode 100644\n--- /dev/null\n+++ b/tests/test_alias_path_bytes.py\n@@ -0,0 +1,86 @@\n+from __future__ import annotations\n+\n+import pytest\n+\n+from pydantic_core import PydanticUndefined\n+\n+from pydantic import AliasPath, BaseModel, Field, ValidationError\n+\n+\n+def test_alias_path_does_not_index_bytes_scalar():\n+    alias_path = AliasPath('payload', 0)\n+    assert alias_path.search_dict_for_path({'payload': b'abc'}) is PydanticUndefined\n+\n+\n+def test_alias_path_does_not_index_bytearray_scalar():\n+    alias_path = AliasPath('payload', 0)\n+    assert alias_path.search_dict_for_path({'payload': bytearray(b'abc')}) is PydanticUndefined\n+\n+\n+def test_alias_path_does_not_index_nested_bytes_scalar():\n+    alias_path = AliasPath('outer', 'payload', 1)\n+    assert alias_path.search_dict_for_path({'outer': {'payload': b'abc'}}) is PydanticUndefined\n+\n+\n+def test_alias_path_does_not_index_nested_bytearray_scalar():\n+    alias_path = AliasPath('outer', 'payload', 1)\n+    assert alias_path.search_dict_for_path({'outer': {'payload': bytearray(b'abc')}}) is PydanticUndefined\n+\n+\n+def test_model_validation_treats_bytes_alias_path_as_missing_required_field():\n+    class M(BaseModel):\n+        x: int = Field(validation_alias=AliasPath('payload', 0))\n+\n+    # If bytes were treated as indexable, this would become x=97.\n+    # Correct behavior: alias lookup fails and field is missing -> ValidationError.\n+    with pytest.raises(ValidationError):\n+        M.model_validate({'payload': b'abc'})\n+\n+\n+def test_model_validation_still_allows_list_indexing_in_alias_path():\n+    class M(BaseModel):\n+        x: str = Field(validation_alias=AliasPath('payload', 1))\n+\n+    m = M.model_validate({'payload': ['zero', 'one']})\n+    assert m.x == 'one'\n+\n+\n+def test_alias_path_keeps_normal_tuple_indexing():\n+    alias_path = AliasPath('payload', 1)\n+    assert alias_path.search_dict_for_path({'payload': ('zero', 'one')}) == 'one'\n\n",
+  "fail_to_pass": [
+    "tests/test_alias_path_bytes.py::test_alias_path_does_not_index_bytes_scalar",
+    "tests/test_alias_path_bytes.py::test_alias_path_does_not_index_bytearray_scalar",
+    "tests/test_alias_path_bytes.py::test_model_validation_treats_bytes_alias_path_as_missing_required_field"
+  ],
+  "pass_to_pass": [
+    "tests/test_alias_path_bytes.py::test_model_validation_still_allows_list_indexing_in_alias_path",
+    "tests/test_alias_path_bytes.py::test_alias_path_keeps_normal_tuple_indexing"
+  ],
+  "selected_test_files_to_run": [
+    "tests/test_alias_path_bytes.py"
+  ],
+  "patch": "<auto-derived from solution/solve.sh at submit time>",
+  "problem_statement": "<auto-derived from instruction.md at submit time>",
+  "before_repo_set_cmd": "git reset --hard 9e9a11132c980c4ec84ff6d2df06d4c1a55ca8f3 && git clean -fd"
+}
